@@ -5,7 +5,7 @@ globals [
 breed [ people person ]
 breed [ thieves thief ]
 
-turtles-own [money] ;both thieves and persons have money
+turtles-own [money direccion] ;both thieves and persons have
 
 to setup
   clear-all
@@ -60,30 +60,31 @@ to update-hour
 end
 
 to move  ; turtle procedure
-  ;rt random 50
-  ;lt random 50
+
   let der patch-at -1 0
   let izq patch-at 1 0
   let up patch-at 0 1
   let down patch-at 0 -1
+  let prob (list der izq up down)
 
-  ifelse [pcolor] of izq = green  [
-    face izq
+  if [pcolor] of izq != green  [
+    ;face izq
+    set prob remove izq prob
   ]
-  [ ifelse [pcolor] of izq = green [
-     face izq
-    ]
-    [
-      ifelse [pcolor] of up = green [
-        face up
-      ]
-      [
-        face down
-      ]
-    ]
+  if [pcolor] of der != green [
+     ;face der
+    set prob remove der prob
   ]
-  fd 1 ;Moves the Turtle 1 position to the way it's facing
+  if [pcolor] of up != green [
+     set prob remove up prob
+  ]
+  if [pcolor] of down != green [
+     set prob remove down prob
+  ]
+  face one-of prob
+  fd 1
 end
+
 
 to-report myMoney
   report money
@@ -126,7 +127,6 @@ end
 to update-timer-display
    ask patch max-pxcor max-pycor [ set plabel count-down ]
 end
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 381
@@ -195,7 +195,7 @@ INPUTBOX
 331
 133
 CantLadrones
-40.0
+4.0
 1
 0
 Number
