@@ -56,7 +56,7 @@ to update-hour
   ]
   [ set hour 0 ]
 
-  output-type hour
+   hour
 end
 
 to move  ; turtle procedure
