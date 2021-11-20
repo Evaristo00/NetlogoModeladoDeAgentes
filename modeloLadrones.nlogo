@@ -1,6 +1,8 @@
 globals [
   hour
-  count-down ]
+  count-down
+  danger-time?
+]
 
 breed [ people person ]
 breed [ thieves thief ]
@@ -20,7 +22,7 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
       ])
   ]
   create-people CantPersonas [
-		setxy  random-xcor ((random 5 - 2) * 8)
+		setxy  int random-xcor ((random 5 - 2) * 8)
 		set money random 1000
     set edad random 100
     set slow 3 - random 3
@@ -31,7 +33,7 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
     [set shape "person"]
   ]
   create-thieves CantLadrones [
-		setxy  random-xcor ((random 4 - 2) * 8)
+		setxy  int random-xcor ((random 4 - 2) * 8)
 		set money  random 10
     set edad random 100
     set slow 3 - random 3
@@ -43,6 +45,7 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
 
   ]
   set hour 0
+  set danger-time? false
   Reset-ticks
 end
 
@@ -62,10 +65,17 @@ to go
 
 	;llamar a todos los procesos
   ask people [
-    if ticks mod slow = 0  [move]
+    if ticks mod slow = 0
+    [
+      cambiarDirec
+      move
+    ]
   ]
   ask thieves[
-    if ticks mod slow = 0  [ move ]
+    if ticks mod slow = 0
+    [
+      move
+    ]
     steal
   ]
   tick
@@ -76,6 +86,7 @@ to update-hour
     set hour hour + 1
   ]
   [ set hour 0 ]
+  if (hour > -1) and (hour < 7) [ set danger-time? true]
 end
 
 to move  ; turtle procedure
@@ -129,7 +140,7 @@ to steal ; thief procedure
     ;;set money [money] of prey ;;=>Another way of setting the money
 
     let prob 10
-    if (hour > -1) and (hour < 7) [set prob prob + 50]
+    if danger-time? [set prob prob + 50]
     if ( [edad] of prey > 18 ) [set prob prob + 10]
     if ( [edad] of prey > 50 ) [set prob prob + 10]
     if ( [money] of prey > 300 ) [set prob prob + 10]
@@ -154,6 +165,38 @@ to steal ; thief procedure
 
 
 end
+
+
+to cambiarDirec
+   (ifelse
+    direccion = "der" [
+      (foreach [-1 -2 -3 ] [x ->
+        if count thieves-at x 0 != 0
+        [set direccion "izq"]
+      ])
+    ]
+    direccion = "izq" [
+      (foreach [1 2 3 ] [x ->
+        if count thieves-at x 0 != 0
+        [set direccion "der"]
+      ])
+    ]
+    direccion = "up" [
+      (foreach [1 2 3 ] [x ->
+        if count thieves-at 0 x != 0
+        [set direccion "down"]
+      ])
+    ]
+    ; elsecommands down
+    [
+      (foreach [-1 -2 -3 ] [x ->
+        if count thieves-at 0 x != 0
+        [set direccion "up"]
+      ])
+  ])
+end
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 381
@@ -222,7 +265,7 @@ INPUTBOX
 371
 70
 CantLadrones
-2.0
+5.0
 1
 0
 Number
@@ -233,7 +276,7 @@ INPUTBOX
 371
 146
 CantPersonas
-700.0
+20.0
 1
 0
 Number

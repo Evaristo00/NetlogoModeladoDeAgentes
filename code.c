@@ -1,6 +1,8 @@
 globals [
   hour
-  count-down ]
+  count-down
+  danger-time?
+]
 
 breed [ people person ]
 breed [ thieves thief ]
@@ -43,6 +45,7 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
 
   ]
   set hour 0
+  set danger-time? false
   Reset-ticks
 end
 
@@ -69,7 +72,10 @@ to go
     ]
   ]
   ask thieves[
-    if ticks mod slow = 0  [ move ]
+    if ticks mod slow = 0  
+    [    
+      move 
+    ]
     steal
   ]
   tick
@@ -80,6 +86,7 @@ to update-hour
     set hour hour + 1
   ]
   [ set hour 0 ]
+  if (hour > -1) and (hour < 7) [ set danger-time? true] 
 end
 
 to move  ; turtle procedure
@@ -133,7 +140,7 @@ to steal ; thief procedure
     ;;set money [money] of prey ;;=>Another way of setting the money
 
     let prob 10
-    if (hour > -1) and (hour < 7) [set prob prob + 50]
+    if danger-time? [set prob prob + 50]
     if ( [edad] of prey > 18 ) [set prob prob + 10]
     if ( [edad] of prey > 50 ) [set prob prob + 10]
     if ( [money] of prey > 300 ) [set prob prob + 10]
@@ -188,3 +195,5 @@ to cambiarDirec
       ])
   ])
 end
+
+
