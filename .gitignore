@@ -1,2 +1,3 @@
 # Ignore nlogo and temp files. 
 # Just update the .c file in your code!
+.nlogo
