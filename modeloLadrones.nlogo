@@ -5,12 +5,10 @@ globals [
 breed [ people person ]
 breed [ thieves thief ]
 
-
 turtles-own [ money direccion slow edad] ;both thieves and persons have
 ;direccion could be "der" "izq" "up" "down" "stay"
 
-
-to setup
+	to setup
   clear-all
   ask patches [
    set pcolor one-of [ grey]
@@ -32,7 +30,6 @@ to setup
     [set shape "person business"]
     [set shape "person"]
   ]
-
   create-thieves CantLadrones [
 		setxy  random-xcor ((random 4 - 2) * 8)
 		set money  random 10
@@ -40,7 +37,10 @@ to setup
     set slow 3 - random 3
     set direccion "stay"
     set color  black
-    set shape "person"
+    ifelse (slow = 1)
+    [set shape "bici 2"]
+    [set shape "person"]
+
   ]
   set hour 0
   Reset-ticks
@@ -49,6 +49,16 @@ end
 to go
 
   if ticks mod 30 = 0 [ update-hour ]
+
+  clear-output
+  output-type "Current Time: " output-type hour  output-print ":00 HS"
+  output-type "Dead People: " output-print CantPersonas - count people
+  output-type "People Alive: " output-print count people
+  output-type "Robbed People Alive: " output-print count people with [ color = red]
+
+  output-type "People's Money: "  output-type sum [money] of people output-print " Pesos"
+  output-type "Money Robbed: "  output-type sum [money] of thieves output-print " Pesos"
+
 
 	;llamar a todos los procesos
   ask people [
@@ -66,18 +76,14 @@ to update-hour
     set hour hour + 1
   ]
   [ set hour 0 ]
-
-  output-type hour
 end
 
 to move  ; turtle procedure
-
   let der patch-at -1 0
   let izq patch-at 1 0
   let up patch-at 0 1
   let down patch-at 0 -1
   let prob (list "der" "izq" "up" "down")
-
   if (izq = nobody) or ([pcolor] of izq != green) or (direccion = "der") [
     ;face izq
     set prob remove "izq" prob
@@ -93,7 +99,6 @@ to move  ; turtle procedure
      set prob remove "down" prob
   ]
   set direccion one-of prob
-
   ifelse direccion = "der"
     [ face der ]
   [ifelse direccion = "izq"
@@ -107,25 +112,47 @@ to move  ; turtle procedure
 end
 
 
+
 to-report myMoney
   report money
 end
 
 to steal ; thief procedure
-  if random 10 > 1 [
-    let prey one-of people-here                    ; grab a random
-    let newMoney 0
-    if prey != nobody  [                          ; did we get one? if so,
-      ask prey [ set newMoney myMoney
-        set money 0
-        set color red
+
+
+
+  let prey one-of people-here     ; grab a random prey from the spot
+  let newMoney 0
+
+  ;; did we get one? if so,
+  if prey != nobody  [
+    ;;set money [money] of prey ;;=>Another way of setting the money
+
+    let prob 10
+    if (hour > -1) and (hour < 7) [set prob prob + 50]
+    if ( [edad] of prey > 18 ) [set prob prob + 10]
+    if ( [edad] of prey > 50 ) [set prob prob + 10]
+    if ( [money] of prey > 300 ) [set prob prob + 10]
+    if ( [money] of prey > 700 ) [set prob prob + 10]
+
+    if random 100 < prob [
+
+      ask prey [
+        ifelse money = 0 [ die ]
+        [
+          set newMoney money
+          set money 0
+          set color  red
+        ]
       ]
-      ifelse newMoney = 0 [
-        ask prey [die]
-      ]
-      [set money money + newMoney]
+      set money money + newMoney
     ]
+
   ]
+
+
+
+
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -156,10 +183,10 @@ ticks
 30.0
 
 BUTTON
-176
-19
-239
-52
+232
+166
+295
+199
 NIL
 setup
 NIL
@@ -173,10 +200,10 @@ NIL
 1
 
 BUTTON
-267
-19
-330
-52
+308
+166
+371
+199
 go
 go
 T
@@ -190,33 +217,51 @@ NIL
 1
 
 INPUTBOX
-176
-73
-331
-133
+223
+10
+371
+70
 CantLadrones
-4.0
+2.0
 1
 0
 Number
 
 INPUTBOX
-177
-141
-332
-201
+216
+86
+371
+146
 CantPersonas
-10.0
+700.0
 1
 0
 Number
 
 OUTPUT
-117
-230
-357
-284
+842
+185
+1195
+318
 11
+
+PLOT
+844
+11
+1044
+161
+People Alive per Ticks
+Ticks
+People
+0.0
+10.0
+0.0
+100.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -2674135 true "" "plot count people"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -269,6 +314,34 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
+
+bici 2
+false
+1
+Line -7500403 false 163 183 228 184
+Circle -7500403 false false 213 184 22
+Circle -7500403 false false 156 187 16
+Circle -16777216 false false 28 148 95
+Circle -16777216 false false 24 144 102
+Circle -16777216 false false 174 144 102
+Circle -16777216 false false 177 148 95
+Polygon -2674135 true true 75 195 90 90 98 92 97 107 192 122 207 83 215 85 202 123 211 133 225 195 165 195 164 188 214 188 202 133 94 116 82 195
+Polygon -2674135 true true 208 83 164 193 171 196 217 85
+Polygon -2674135 true true 165 188 91 120 90 131 164 196
+Line -7500403 false 159 173 170 219
+Line -7500403 false 155 172 166 172
+Line -7500403 false 166 219 177 219
+Polygon -16777216 true false 187 92 198 92 208 97 217 100 231 93 231 84 216 82 201 83 184 85
+Polygon -7500403 true false 71 86 98 93 101 85 74 81
+Rectangle -16777216 true false 75 75 75 90
+Polygon -16777216 true false 70 87 70 72 78 71 78 89
+Circle -7500403 false false 153 184 22
+Line -7500403 false 159 206 228 205
+Rectangle -13345367 true false 150 45 195 150
+Polygon -13791810 true false 150 135 120 195 135 210 165 150 180 210 195 210 195 135 150 135 150 135 180 150 180 135 150 135
+Circle -13791810 true false 123 3 85
+Line -16777216 false 105 15 195 15
+Polygon -16777216 true false 135 15 150 0 165 0 180 0 195 15 195 15 135 15
 
 bike
 false
