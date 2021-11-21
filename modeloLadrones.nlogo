@@ -5,7 +5,10 @@ globals [
 breed [ people person ]
 breed [ thieves thief ]
 
-turtles-own [money direccion] ;both thieves and persons have
+
+turtles-own [ money direccion slow edad] ;both thieves and persons have
+;direccion could be "der" "izq" "up" "down" "stay"
+
 
 to setup
   clear-all
@@ -20,13 +23,22 @@ to setup
   ]
   create-people CantPersonas [
 		setxy  random-xcor ((random 5 - 2) * 8)
-		set money  (100 - random 50)
+		set money random 1000
+    set edad random 100
+    set slow 3 - random 3
+    set direccion "stay"
     set color  white
-    set shape "person"
+    ifelse (money > 700)
+    [set shape "person business"]
+    [set shape "person"]
   ]
+
   create-thieves CantLadrones [
-		setxy  random-xcor ((random 5 - 2) * 8)
+		setxy  random-xcor ((random 4 - 2) * 8)
 		set money  random 10
+    set edad random 100
+    set slow 3 - random 3
+    set direccion "stay"
     set color  black
     set shape "person"
   ]
@@ -38,13 +50,12 @@ to go
 
   if ticks mod 30 = 0 [ update-hour ]
 
-
 	;llamar a todos los procesos
   ask people [
-    move
+    if ticks mod slow = 0  [move]
   ]
   ask thieves[
-    move
+    if ticks mod slow = 0  [ move ]
     steal
   ]
   tick
@@ -65,23 +76,33 @@ to move  ; turtle procedure
   let izq patch-at 1 0
   let up patch-at 0 1
   let down patch-at 0 -1
-  let prob (list der izq up down)
+  let prob (list "der" "izq" "up" "down")
 
-  if [pcolor] of izq != green  [
+  if (izq = nobody) or ([pcolor] of izq != green) or (direccion = "der") [
     ;face izq
-    set prob remove izq prob
+    set prob remove "izq" prob
   ]
-  if [pcolor] of der != green [
+  if (der = nobody) or ([pcolor] of der != green) or (direccion = "izq") [
      ;face der
-    set prob remove der prob
+    set prob remove "der" prob
   ]
-  if [pcolor] of up != green [
-     set prob remove up prob
+  if (up = nobody) or ([pcolor] of up != green) or (direccion = "down") [
+     set prob remove "up" prob
   ]
-  if [pcolor] of down != green [
-     set prob remove down prob
+  if (down = nobody) or ([pcolor] of down != green) or (direccion = "up") [
+     set prob remove "down" prob
   ]
-  face one-of prob
+  set direccion one-of prob
+
+  ifelse direccion = "der"
+    [ face der ]
+  [ifelse direccion = "izq"
+    [ face izq ]
+    [ifelse direccion = "up"
+      [ face up ]
+      [face down]
+    ]
+  ]
   fd 1
 end
 
@@ -97,6 +118,7 @@ to steal ; thief procedure
     if prey != nobody  [                          ; did we get one? if so,
       ask prey [ set newMoney myMoney
         set money 0
+        set color red
       ]
       ifelse newMoney = 0 [
         ask prey [die]
@@ -104,28 +126,6 @@ to steal ; thief procedure
       [set money money + newMoney]
     ]
   ]
-end
-
-to setup-timer
-   set count-down 30 ;; a 30 tick timer. Every 30 ticks, an hour passes!
-   ;; if you have a display of the remaining time,
-   ;; you might want to initialize it here, for example:
-   ask patch max-pxcor max-pycor
-   [ set plabel-color white
-     set plabel count-down
-   ]
-end
-
-to decrement-timer
-   set count-down count-down - 1
-end
-
-to-report timer-expired?
-   report ( count-down <= 0 )
-end
-
-to update-timer-display
-   ask patch max-pxcor max-pycor [ set plabel count-down ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -142,8 +142,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -269,6 +269,29 @@ arrow
 true
 0
 Polygon -7500403 true true 150 0 0 150 105 150 105 293 195 293 195 150 300 150
+
+bike
+false
+1
+Line -7500403 false 163 183 228 184
+Circle -7500403 false false 213 184 22
+Circle -7500403 false false 156 187 16
+Circle -16777216 false false 28 148 95
+Circle -16777216 false false 24 144 102
+Circle -16777216 false false 174 144 102
+Circle -16777216 false false 177 148 95
+Polygon -2674135 true true 75 195 90 90 98 92 97 107 192 122 207 83 215 85 202 123 211 133 225 195 165 195 164 188 214 188 202 133 94 116 82 195
+Polygon -2674135 true true 208 83 164 193 171 196 217 85
+Polygon -2674135 true true 165 188 91 120 90 131 164 196
+Line -7500403 false 159 173 170 219
+Line -7500403 false 155 172 166 172
+Line -7500403 false 166 219 177 219
+Polygon -16777216 true false 187 92 198 92 208 97 217 100 231 93 231 84 216 82 201 83 184 85
+Polygon -7500403 true true 71 86 98 93 101 85 74 81
+Rectangle -16777216 true false 75 75 75 90
+Polygon -16777216 true false 70 87 70 72 78 71 78 89
+Circle -7500403 false false 153 184 22
+Line -7500403 false 159 206 228 205
 
 box
 false
@@ -434,6 +457,23 @@ Polygon -7500403 true true 105 90 120 195 90 285 105 300 135 300 150 225 165 300
 Rectangle -7500403 true true 127 79 172 94
 Polygon -7500403 true true 195 90 240 150 225 180 165 105
 Polygon -7500403 true true 105 90 60 150 75 180 135 105
+
+person business
+false
+0
+Rectangle -1 true false 120 90 180 180
+Polygon -13345367 true false 135 90 150 105 135 180 150 195 165 180 150 105 165 90
+Polygon -7500403 true true 120 90 105 90 60 195 90 210 116 154 120 195 90 285 105 300 135 300 150 225 165 300 195 300 210 285 180 195 183 153 210 210 240 195 195 90 180 90 150 165
+Circle -7500403 true true 110 5 80
+Rectangle -7500403 true true 127 76 172 91
+Line -16777216 false 172 90 161 94
+Line -16777216 false 128 90 139 94
+Polygon -13345367 true false 195 225 195 300 270 270 270 195
+Rectangle -13791810 true false 180 225 195 300
+Polygon -14835848 true false 180 226 195 226 270 196 255 196
+Polygon -13345367 true false 209 202 209 216 244 202 243 188
+Line -16777216 false 180 90 150 165
+Line -16777216 false 120 90 150 165
 
 plant
 false
