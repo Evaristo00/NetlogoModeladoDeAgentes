@@ -20,7 +20,7 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
       ])
   ]
   create-people CantPersonas [
-		setxy  random-xcor ((random 5 - 2) * 8)
+		setxy  int random-xcor ((random 5 - 2) * 8)
 		set money random 1000
     set edad random 100
     set slow 3 - random 3
@@ -31,7 +31,7 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
     [set shape "person"]
   ]
   create-thieves CantLadrones [
-		setxy  random-xcor ((random 4 - 2) * 8)
+		setxy  int random-xcor ((random 4 - 2) * 8)
 		set money  random 10
     set edad random 100
     set slow 3 - random 3
@@ -62,7 +62,11 @@ to go
 
 	;llamar a todos los procesos
   ask people [
-    if ticks mod slow = 0  [move]
+    if ticks mod slow = 0 
+    [
+      cambiarDirec
+      move
+    ]
   ]
   ask thieves[
     if ticks mod slow = 0  [ move ]
@@ -153,4 +157,34 @@ to steal ; thief procedure
 
 
 
+end
+
+
+to cambiarDirec
+   (ifelse
+    direccion = "der" [
+      (foreach [-1 -2 -3 ] [x ->
+        if count thieves-at x 0 != 0
+        [set direccion "izq"]
+      ])
+    ]
+    direccion = "izq" [
+      (foreach [1 2 3 ] [x ->
+        if count thieves-at x 0 != 0
+        [set direccion "der"]
+      ])
+    ]
+    direccion = "up" [
+      (foreach [1 2 3 ] [x ->
+        if count thieves-at 0 x != 0
+        [set direccion "down"]
+      ])
+    ]
+    ; elsecommands down
+    [
+      (foreach [-1 -2 -3 ] [x ->
+        if count thieves-at 0 x != 0
+        [set direccion "up"]
+      ])
+  ])
 end
