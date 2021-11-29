@@ -149,7 +149,8 @@ to steal ; thief procedure
     if random 100 < prob [
 
       ask prey [
-        ifelse money = 0 [ die ]
+        ifelse random 1000 + 1 > 1000; una probabilidad de muerte del 0.1%
+        [ die ]
         [
           set newMoney money
           set money 0
@@ -195,7 +196,6 @@ to cambiarDirec
       ])
   ])
 end
-
 
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -265,7 +265,7 @@ INPUTBOX
 371
 70
 CantLadrones
-5.0
+10.0
 1
 0
 Number
@@ -276,7 +276,7 @@ INPUTBOX
 371
 146
 CantPersonas
-20.0
+100.0
 1
 0
 Number
