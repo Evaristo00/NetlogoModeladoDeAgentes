@@ -1,5 +1,8 @@
 globals [
   hour
+  count-hour
+  count-robos
+  count-robos-danger-time
   count-down
   danger-time?
 ]
@@ -10,7 +13,7 @@ breed [ thieves thief ]
 turtles-own [ money direccion slow edad] ;both thieves and persons have
 ;direccion could be "der" "izq" "up" "down" "stay"
 
-	to setup
+  to setup
   clear-all
   ask patches [
    set pcolor one-of [ grey]
@@ -22,8 +25,8 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
       ])
   ]
   create-people CantPersonas [
-		setxy  int random-xcor ((random 5 - 2) * 8)
-		set money random 1000
+    setxy  int random-xcor ((random 5 - 2) * 8)
+    set money random 1000
     set edad random 100
     set slow 3 - random 3
     set direccion "stay"
@@ -33,8 +36,8 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
     [set shape "person"]
   ]
   create-thieves CantLadrones [
-		setxy  int random-xcor ((random 4 - 2) * 8)
-		set money  random 10
+    setxy  int random-xcor ((random 4 - 2) * 8)
+    set money  random 10
     set edad random 100
     set slow 3 - random 3
     set direccion "stay"
@@ -45,6 +48,9 @@ turtles-own [ money direccion slow edad] ;both thieves and persons have
 
   ]
   set hour 0
+  set count-hour 0
+  set count-robos 0
+  set count-robos-danger-time 0
   set danger-time? false
   Reset-ticks
 end
@@ -55,6 +61,9 @@ to go
 
   clear-output
   output-type "Current Time: " output-type hour  output-print ":00 HS"
+  output-type "Count Hours: " output-print count-hour
+  output-type "Count Robos: " output-print count-robos
+  output-type "Robos at 0 am to 7am: " output-print count-robos-danger-time
   output-type "Dead People: " output-print CantPersonas - count people
   output-type "People Alive: " output-print count people
   output-type "Robbed People Alive: " output-print count people with [ color = red]
@@ -63,18 +72,18 @@ to go
   output-type "Money Robbed: "  output-type sum [money] of thieves output-print " Pesos"
 
 
-	;llamar a todos los procesos
+  ;llamar a todos los procesos
   ask people [
-    if ticks mod slow = 0 
+    if ticks mod slow = 0
     [
       cambiarDirec
       move
     ]
   ]
   ask thieves[
-    if ticks mod slow = 0  
-    [    
-      move 
+    if ticks mod slow = 0
+    [
+      move
     ]
     steal
   ]
@@ -86,7 +95,10 @@ to update-hour
     set hour hour + 1
   ]
   [ set hour 0 ]
-  if (hour > -1) and (hour < 7) [ set danger-time? true] 
+  ifelse (hour > -1) and (hour < 7)
+  [ set danger-time? true]
+  [ set danger-time? false]
+  set count-hour count-hour + 1
 end
 
 to move  ; turtle procedure
@@ -140,16 +152,18 @@ to steal ; thief procedure
     ;;set money [money] of prey ;;=>Another way of setting the money
 
     let prob 10
-    if danger-time? [set prob prob + 50]
     if ( [edad] of prey > 18 ) [set prob prob + 10]
     if ( [edad] of prey > 50 ) [set prob prob + 10]
     if ( [money] of prey > 300 ) [set prob prob + 10]
     if ( [money] of prey > 700 ) [set prob prob + 10]
+    if danger-time? [set prob prob + prob * 0.65]
 
-    if random 100 < prob [
-
+    if random 13000 < prob [
+      set count-robos count-robos + 1
+      if danger-time? [set count-robos-danger-time count-robos-danger-time + 1]
       ask prey [
-        ifelse money = 0 [ die ]
+        ifelse random 100 + 1 > 98; una probabilidad de muerte del 2%
+        [ die ]
         [
           set newMoney money
           set money 0
@@ -195,5 +209,3 @@ to cambiarDirec
       ])
   ])
 end
-
-
